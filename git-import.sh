@@ -1,7 +1,6 @@
 #!/bin/bash
 
 appname=${0##*/}
-debug=1
 
 unset preserve_paths
 if [ "$1" = '-p' ] || [ "$1" = '--preserve-paths' ]; then
