@@ -20,8 +20,13 @@ and optionally the relative path of the file(s).
 Usage: $appname [-p] SRC_REPO SRC_BRANCH SRC_DIR [SRC_FILE...]
 
 -p, --preserve-paths
-              Preserve the paths of source files.  If not specified,
-              the common ancestor of source files is used as the project root.
+              Preserve the full relative paths of source files.
+                If not specified, the common ancestor of source files is used
+                as the project root.
+                NOTE: You MUST use this option if you want to import several
+                files with the same filename from different directories.
+                Otherwise the final merge will fail and may import other files
+                in those directories.
 
 SRC_REPO      Source repository path or URI
 SRC_BRANCH    Source branch
