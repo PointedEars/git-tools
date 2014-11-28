@@ -94,6 +94,18 @@ git clone --branch "$src_branch" "$src_repo" "$tmpdir" &&
 	cd - &&
 	git remote add "$remote" "$tmpdir" &&
 		git fetch "$remote" "$src_branch" &&
-		git merge --edit --message="$appname: Merged '$src_dir/$src_files' from branch '$src_branch' of $repo_name" FETCH_HEAD &&
-	git remote rm "$remote" &&
+		(
+			git merge --edit --message="$appname: Merged '$src_dir/$src_files' from branch '$src_branch' of $repo_name" FETCH_HEAD ||
+			(
+				printf >&2 "\nMerge failed because something went wrong.  Once you fixed it, run
+
+git merge --edit --message=\"$appname: Merged '$src_dir/$src_files' from branch '$src_branch' of $repo_name\" FETCH_HEAD &&
+  git remote rm \"$remote\" &&
+  rm -rf \"$tmpdir\"
+
+or something to that effect in order to complete the import.\n"
+				exit 1
+			)
+		) &&
+	git remote rm "$remote"
 	[ ! $debug ] && rm -rf "$tmpdir"
