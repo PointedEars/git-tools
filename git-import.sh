@@ -1,6 +1,9 @@
 #!/bin/bash
 
 appname=${0##*/}
+bold=$(tput bold 2>/dev/null)
+undl=$(tput smul 2>/dev/null)
+norm=$(tput sgr0 2>/dev/null)
 
 unset preserve_paths
 if [ "$1" = '-p' ] || [ "$1" = '--preserve-paths' ]; then
@@ -13,28 +16,45 @@ src_branch=$2
 src_dir=${3#$src_repo}
 
 if [ -z "$src_repo" ] || [ -z "$src_branch" ] || [ -z "$src_dir" ]; then
-	echo >&2 "Imports a directory/file in a branch of another repository
-to the current branch of this repository, preserving the history
-and optionally the relative path of the file(s).
+	echo >&2 "Imports a directory/file from a branch of another repository.
 
-Usage: $appname [-p] SRC_REPO SRC_BRANCH SRC_DIR [SRC_FILE...]
+Usage: $bold$appname$norm [$bold-p$norm] ${undl}SRC_REPO$norm ${undl}SRC_BRANCH$norm ${undl}SRC_DIR$norm [${undl}SRC_FILE$norm...]
 
--p, --preserve-paths
-              Preserve the full relative paths of source files.
-                If not specified, the common ancestor of source files is used
-                as the project root.
-                NOTE: You MUST use this option if you want to import several
-                files with the same filename from different directories.
-                Otherwise the final merge will fail and may import other files
-                in those directories.
+Imports a directory/file(s) from a branch of another repository
+to the current branch of this repository, preserving its history
+and optionally its/their relative path.
 
-SRC_REPO      Source repository path or URI
-SRC_BRANCH    Source branch
-SRC_DIR       Source directory.  If it can be resolved to a directory in the
-                local filesystem after removing the SRC_REPO prefix, that
-                directory is used.
-SRC_FILE      Source file paths relative to SRC_DIR.  If they can be resolved
-                to files in the local filesystem after processing SRC_DIR
+This is accomplished as follows:
+
+  1. Clone the other repository to a temporary directory, and switch to
+     the branch from which files should be imported; see ${bold}git-clone$norm(1).
+  2. Filter that branch, rewriting history; see ${bold}git-filter-branch$norm(1).
+  3. Optionally, restore the directory structure and commit any changes
+     to the local repository only; see ${bold}git-mv$norm(1) and ${bold}git-commit$norm(1).
+  4. Add the clone as remote of the target repository; see ${bold}git-remote$norm(1).
+  5. Fetch the new remote into a new branch; see ${bold}git-fetch$norm(1).
+  6. Merge the new branch into the current branch; see ${bold}git-merge$norm(1).
+  7. Clean up.
+
+${bold}OPTIONS$norm
+
+  ${bold}-p$norm, $bold--preserve-paths$norm
+    Preserve the full relative paths of source files.
+    If not specified, the common ancestor of source files is used as
+    the project root.
+    NOTE: You MUST use this option if you want to import several files
+    with the same filename from different directories.  Otherwise
+    the final merge will fail and may import other files in those directories.
+
+${bold}PARAMETERS$norm
+
+  ${undl}SRC_REPO$norm      Source repository path or URI
+  ${undl}SRC_BRANCH$norm    Source branch
+  ${undl}SRC_DIR$norm       Source directory.  If it can be resolved to a directory in
+                the local filesystem after removing the ${undl}SRC_REPO$norm prefix,
+                that directory is used.
+  ${undl}SRC_FILE$norm      Source file paths relative to ${undl}SRC_DIR$norm.  If they can be resolved
+                to files in the local filesystem after processing ${undl}SRC_DIR$norm
                 as described above, those files are used."
 	exit 1
 fi
@@ -102,13 +122,13 @@ git clone --branch "$src_branch" "$src_repo" "$tmpdir" &&
 		(
 			git merge --edit --message="$appname: Merged '$src_dir/$src_files' from branch '$src_branch' of $repo_name" FETCH_HEAD ||
 			(
-				printf >&2 "\nMerge failed because something went wrong.  Once you fixed it, run
+				printf >&2 "\n${bold}Merge failed because something went wrong.  Once you fixed it, run
 
 git merge --edit --message=\"$appname: Merged '$src_dir/$src_files' from branch '$src_branch' of $repo_name\" FETCH_HEAD &&
   git remote rm \"$remote\" &&
   rm -rf \"$tmpdir\"
 
-or something to that effect in order to complete the import.\n"
+or something to that effect in order to complete the import.$norm\n"
 				exit 1
 			)
 		) &&
