@@ -54,7 +54,9 @@ ${bold}PARAMETERS$norm
   ${undl}SRC_BRANCH$norm    Source branch
   ${undl}SRC_DIR$norm       Source directory.  If it can be resolved to a directory in
                 the local filesystem after removing the ${undl}SRC_REPO$norm prefix,
-                that directory is used.
+                that directory is used.  If it can be resolved to a regular file
+                in the local filesystem and ${undl}SRC_FILE$norm is omitted, only
+                that file is imported.
   ${undl}SRC_FILE$norm      Source file paths relative to ${undl}SRC_DIR$norm.  If they can be resolved
                 to files in the local filesystem after processing ${undl}SRC_DIR$norm
                 as described above, those files are used."
@@ -65,7 +67,16 @@ fi
 repo_name=${src_repo##*/}
 repo_name=${repo_name%%.git*}
 
-src_dir=${src_dir%/}
+shift 3
+
+src_dir=${src_dir#/}
+if [ -f "$src_repo/$src_dir" ] && [ -z "$@" ]; then
+	src_file=$src_dir
+	src_dir=${src_dir%/*}
+	set -- "$src_file"
+else
+	src_dir=${src_dir%/}
+fi
 
 rx_escape ()
 {
@@ -75,7 +86,6 @@ rx_escape ()
 	)
 }
 
-shift 3
 for src_file in "$@"
 do
 	[ -n "$src_files" ] && src_files="$src_files|"
@@ -119,7 +129,8 @@ git clone --branch "$src_branch" "$src_repo" "$tmpdir" &&
 		fi
 	) &&
 	cd - &&
-	git remote add "$remote" "$tmpdir" &&
+	git remote rm "$remote" 2>/dev/null
+        git remote add "$remote" "$tmpdir" &&
 		git fetch "$remote" "$src_branch" &&
 		(
 			git merge --edit --message="$appname: Merged '$src_dir/$src_files' from branch '$src_branch' of $repo_name" FETCH_HEAD ||
