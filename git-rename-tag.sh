@@ -8,7 +8,7 @@ if [ -z "$old" ] || [ -z "$new" ]; then
 
 OLD  Old tag name
 NEW  New tag name"
-  exit 127
+  exit 1
 fi
 
 git tag "$new" "$old" && git-delete-tag "$old"
