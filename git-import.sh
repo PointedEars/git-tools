@@ -7,8 +7,8 @@ norm=$(tput sgr0 2>/dev/null)
 
 unset preserve_paths
 if [ "$1" = '-p' ] || [ "$1" = '--preserve-paths' ]; then
-	preserve_paths=1
-	shift
+  preserve_paths=1
+  shift
 fi
 
 src_repo=$1
@@ -16,7 +16,7 @@ src_branch=$2
 src_dir=${3#$src_repo}
 
 if [ -z "$src_repo" ] || [ -z "$src_branch" ] || [ -z "$src_dir" ]; then
-	echo >&2 "Imports a directory/file from a branch of another repository.
+  echo >&2 "Imports a directory/file from a branch of another repository.
 
 Usage: $bold$appname$norm [$bold-p$norm] ${undl}SRC_REPO$norm ${undl}SRC_BRANCH$norm ${undl}SRC_DIR$norm [${undl}SRC_FILE$norm...]
 
@@ -60,7 +60,7 @@ ${bold}PARAMETERS$norm
   ${undl}SRC_FILE$norm      Source file paths relative to ${undl}SRC_DIR$norm.  If they can be resolved
                 to files in the local filesystem after processing ${undl}SRC_DIR$norm
                 as described above, those files are used."
-	exit 1
+  exit 1
 fi
 
 [ -d "$src_repo" ] && src_repo=${src_repo%/}
@@ -71,79 +71,86 @@ shift 3
 
 src_dir=${src_dir#/}
 if [ -f "$src_repo/$src_dir" ] && [ -z "$@" ]; then
-	src_file=$src_dir
-	src_dir=${src_dir%/*}
-	set -- "$src_file"
+  src_file=$src_dir
+  src_dir=${src_dir%/*}
+  set -- "$src_file"
 else
-	src_dir=${src_dir%/}
+  src_dir=${src_dir%/}
 fi
 
 rx_escape ()
 {
-	(
-		escape_char=${2:-/}
-		printf '%s' "${1//$escape_char/\\$escape_char}"
-	)
+  (
+    escape_char=${2:-/}
+    printf '%s' "${1//$escape_char/\\$escape_char}"
+  )
 }
 
 for src_file in "$@"
 do
-	[ -n "$src_files" ] && src_files="$src_files|"
-	src_file=${src_file#$src_repo/}
-	src_file=${src_file#$src_dir}
-	src_file=${src_file##/}
-	src_files=$src_files${src_file}
+  [ -n "$src_files" ] && src_files="$src_files|"
+  src_file=${src_file#$src_repo/}
+  src_file=${src_file#$src_dir}
+  src_file=${src_file##/}
+  src_files=$src_files${src_file}
 done
 
 tmpdir=$(mktemp -d -q "${TMPDIR:-/tmp/}$appname-$repo_name.XXXXXXXXXXXX") || exit 1
 remote="$repo_name-$src_branch"
 
 git clone --branch "$src_branch" "$src_repo" "$tmpdir" &&
-	cd "$tmpdir" &&
-	git remote rm origin &&
-	git filter-branch --subdirectory-filter "$src_dir" -- --all &&
-	(
-		if [ -n "$src_files" ]; then
-			git filter-branch -f \
-				--index-filter 'git ls-files -s | egrep '\'$'\t'"($src_files)"'$'\'' | \
-					GIT_INDEX_FILE=$GIT_INDEX_FILE.new git update-index --index-info && \
-					mv $GIT_INDEX_FILE.new $GIT_INDEX_FILE 2>/dev/null || echo ": Nothing to do"' \
-				--prune-empty \
-				-- \
-				--all
-		fi
-	) &&
-	(
-		if [ $preserve_paths ]; then
-			mkdir -p -- "$src_dir" &&
-				(
-					for file in *
-					do
-						if [ -e "$file" ] && [ "${src_dir#$file}" = "$src_dir" ]; then
-							git mv -- "$file" "$src_dir"
-						fi
-					done
-				) &&
-				git add --all . &&
-				git commit --signoff --message="$appname: Restored filtered files to '$src_dir/'"
-		fi
-	) &&
-	cd - &&
-	git remote rm "$remote" 2>/dev/null
-        git remote add "$remote" "$tmpdir" &&
-		git fetch "$remote" "$src_branch" &&
-		(
-			git merge --edit --message="$appname: Merged '$src_dir/$src_files' from branch '$src_branch' of $repo_name" FETCH_HEAD ||
-			(
-				printf >&2 "\n${bold}Merge failed because something went wrong.  Once you fixed it, run
+  cd "$tmpdir" &&
+  git remote rm origin &&
+  {
+    if [ ! -d "$src_dir" ] && [ -f "$src_dir" ]; then
+      src_files=${src_dir##*/}
+      src_dir=${src_dir%/*}
+    fi
+  } &&
+  git filter-branch --subdirectory-filter "$src_dir" -- --all &&
+  (
+    if [ -n "$src_files" ]; then
+      git filter-branch -f \
+        --index-filter 'git ls-files -s | egrep '\'$'\t'"($src_files)"'$'\'' | \
+          GIT_INDEX_FILE=$GIT_INDEX_FILE.new git update-index --index-info && \
+          mv $GIT_INDEX_FILE.new $GIT_INDEX_FILE 2>/dev/null || echo ": Nothing to do"' \
+        --prune-empty \
+        -- \
+        --all
+    fi
+  ) &&
+  (
+    if [ $preserve_paths ]; then
+      mkdir -p -- "$src_dir" &&
+        (
+          for file in *
+          do
+            if [ -e "$file" ] && [ "${src_dir#$file}" = "$src_dir" ]; then
+              git mv -- "$file" "$src_dir"
+            fi
+          done
+        ) &&
+        git add --all . &&
+        git commit --signoff --message="$appname: Restored filtered files to '$src_dir/'"
+    fi
+  ) &&
+  cd - &&
+  git remote rm "$remote" 2>/dev/null
+
+git remote add "$remote" "$tmpdir" &&
+  git fetch "$remote" "$src_branch" &&
+  (
+    git merge --edit --message="$appname: Merged '$src_dir/$src_files' from branch '$src_branch' of $repo_name" FETCH_HEAD ||
+    (
+      printf >&2 "\n${bold}Merge failed because something went wrong.  Once you fixed it, run
 
 git merge --edit --message=\"$appname: Merged '$src_dir/$src_files' from branch '$src_branch' of $repo_name\" FETCH_HEAD &&
   git remote rm \"$remote\" &&
   rm -rf \"$tmpdir\"
 
 or something to that effect in order to complete the import.$norm\n"
-				exit 1
-			)
-		) &&
-	git remote rm "$remote"
-	[ ! $debug ] && rm -rf "$tmpdir"
+        exit 1
+      )
+    ) &&
+  git remote rm "$remote"
+  [ ! $debug ] && rm -rf "$tmpdir"
