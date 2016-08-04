@@ -1,5 +1,6 @@
 /.buildpath
 /git-delete-tag
 /git-import
-/git-rename-tag
 /git-move-tag
+/git-rename-tag
+/git-root
