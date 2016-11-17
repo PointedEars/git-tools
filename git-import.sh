@@ -29,8 +29,8 @@ This is accomplished as follows:
   1. Clone the other repository to a temporary directory, and switch to
      the branch from which files should be imported; see ${bold}git-clone$norm(1).
   2. Filter that branch, rewriting history; see ${bold}git-filter-branch$norm(1):
-     a) Discard everything except files in or under ${bold}SRC_DIR$norm.
-     b) Discard all files except ${bold}SRC_FILE$norm.
+     a) Discard everything except files in or under ${undl}SRC_DIR$norm.
+     b) Discard all files except ${undl}SRC_FILE$norm.
   3. Optionally, restore the directory structure and commit any changes
      to the local repository only; see ${bold}git-mv$norm(1) and ${bold}git-commit$norm(1).
   4. Add the clone as remote of the target repository; see ${bold}git-remote$norm(1).
