@@ -1,9 +1,1 @@
 /.buildpath
-/git-clone-sparse
-/git-delete-tag
-/git-import
-/git-move-tag
-/git-rename-tag
-/git-rewrite-history
-/git-root
-/git-set-date
