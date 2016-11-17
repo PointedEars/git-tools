@@ -142,15 +142,20 @@ git remote add "$remote" "$tmpdir" &&
   (
     git merge --edit --message="$appname: Merged '$src_dir/$src_files' from branch '$src_branch' of $repo_name" FETCH_HEAD ||
     (
-      printf >&2 "\n${bold}Merge failed because something went wrong.  Once you fixed it, run
+      printf >&2 "\n%sMerge failed because something went wrong.  Once you fixed it, run
 
-git merge --edit --message=\"$appname: Merged '$src_dir/$src_files' from branch '$src_branch' of $repo_name\" FETCH_HEAD &&
-  git remote rm \"$remote\" &&
-  rm -rf \"$tmpdir\"
+git merge --edit --message=\"%s: Merged '%s/%s' from branch '%s' of %s\" FETCH_HEAD &&
+  git remote rm \"%s\" &&
+  rm -rf \"%s\"
 
-or something to that effect in order to complete the import.$norm\n"
-        exit 1
-      )
-    ) &&
+or something to that effect in order to complete the import.%s\n" \
+        "$bold" \
+        "$appname" "$src_dir" "$src_files" "$repo_name" \
+        "$remote" \
+        "$tmpdir" \
+        "$norm"
+      exit 1
+    )
+  ) &&
   git remote rm "$remote"
   [ ! $debug ] && rm -rf "$tmpdir"
