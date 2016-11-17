@@ -52,7 +52,7 @@ edit_sparse_config ()
 {
   if [ ! -f "$sparse_config" ]; then
     echo "\
-# git config "$sparse_option" true
+# git config $sparse_option true
 # Paths to include in the sparse checkout, or to exclude (precede with '!').
 # Lines that start with '#' are comments." > "$sparse_config"
   fi

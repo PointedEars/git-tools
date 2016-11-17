@@ -18,7 +18,7 @@
 ## the absolute path is output).
 
 if git rev-parse >/dev/null 2>&1; then
-  if [ "$1" == '--relative' ]; then
+  if [ "$1" = '--relative' ]; then
     git rev-parse --show-cdup
   else
     git rev-parse --show-toplevel

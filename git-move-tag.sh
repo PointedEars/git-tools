@@ -1,6 +1,6 @@
 #!/bin/bash
 
-if [ -z "$1" ] || [ -z "$2" ]; then
+if [ -z "$1" ] || [ -z "$2" ]; then
   echo >&2 "Usage: ${0##*/} TAG TARGET"
   exit 1
 fi
