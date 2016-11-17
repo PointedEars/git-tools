@@ -151,7 +151,12 @@ fi
 git remote add "$remote" "$tmpdir" &&
   git fetch "$remote" "$src_branch" &&
   (
-    git merge --edit --message="$appname: Merged '${src_dir:+$src_dir/}$src_files' from branch '$src_branch' of $repo_name" FETCH_HEAD ||
+    git merge "$(
+      (
+        git merge -h 2>&1 |
+          grep -we '--allow-unrelated-histories' >/dev/null 2>&1
+      ) && printf -- '--allow-unrelated-histories'
+    )" --edit --message="$appname: Merged '${src_dir:+$src_dir/}$src_files' from branch '$src_branch' of $repo_name" FETCH_HEAD ||
     (
       printf >&2 "\n%sMerge failed because something went wrong.  Once you fixed it, run
 
