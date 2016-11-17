@@ -91,24 +91,16 @@ else
   src_dir=${src_dir%/}
 fi
 
-rx_escape ()
-{
-  (
-    escape_char=${2:-/}
-    printf '%s' "${1//$escape_char/\\$escape_char}"
-  )
-}
-
 for src_file in "$@"
 do
   [ -n "$src_files" ] && src_files="$src_files|"
   src_file=${src_file#$src_repo/}
   src_file=${src_file#$src_dir}
   src_file=${src_file##/}
-  src_files=$src_files${src_file}
+  src_files=$src_files${src_file//./\\.}
 done
 
-tmpdir=$(mktemp -d -q "${TMPDIR:-/tmp/}$appname-$repo_name.XXXXXXXXXXXX") || exit 1
+tmpdir=$(mktemp -d -q "${TMPDIR:-/tmp/}$appname-$repo_name.XXXXXXXXXXXX") || exit 1
 remote="$repo_name-$src_branch"
 
 git clone --branch "$src_branch" "$src_repo" "$tmpdir" &&
