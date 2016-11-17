@@ -119,41 +119,47 @@ git clone --branch "$src_branch" "$src_repo" "$tmpdir" &&
       src_files=${src_dir##*/}
       src_dir=${src_dir%/*}
     fi
-  } &&
-  git filter-branch --subdirectory-filter "$src_dir" -- --all &&
-  (
-    if [ -n "$src_files" ]; then
-      git filter-branch -f \
-        --index-filter 'git ls-files -s | egrep '\'$'\t'"($src_files)"'$'\'' | \
-          GIT_INDEX_FILE=$GIT_INDEX_FILE.new git update-index --index-info && \
-          mv $GIT_INDEX_FILE.new $GIT_INDEX_FILE 2>/dev/null || echo ": Nothing to do"' \
-        --prune-empty \
-        -- \
-        --all
-    fi
-  ) &&
-  (
-    if [ $preserve_paths ]; then
-      mkdir -p -- "$src_dir" &&
-        (
-          for file in *
-          do
-            if [ -e "$file" ] && [ "${src_dir#$file}" = "$src_dir" ]; then
-              git mv -- "$file" "$src_dir"
-            fi
-          done
-        ) &&
-        git add --all . &&
-        git commit --signoff --message="$appname: Restored filtered files to '$src_dir/'"
-    fi
-  ) &&
-  cd - &&
-  git remote rm "$remote" 2>/dev/null
+  }
+
+if [ $? -eq 0 ]; then
+  if [ -n "$src_dir" ]; then
+    git filter-branch --subdirectory-filter "$src_dir"
+  fi
+
+  if [ $? -eq 0 ]; then
+    (
+      if [ -n "$src_files" ]; then
+        git filter-branch -f \
+          --index-filter 'git ls-files -s | egrep '\'$'\t'"($src_files)"'$'\'' | \
+            GIT_INDEX_FILE=$GIT_INDEX_FILE.new git update-index --index-info && \
+            mv $GIT_INDEX_FILE.new $GIT_INDEX_FILE 2>/dev/null || echo ": Nothing to do"' \
+          --prune-empty
+      fi
+    ) &&
+    (
+      if [ -n "$src_dir" ] && [ $preserve_paths ]; then
+        mkdir -p -- "$src_dir" &&
+          (
+            for file in *
+            do
+              if [ -e "$file" ] && [ "${src_dir#$file}" = "$src_dir" ]; then
+                git mv -- "$file" "$src_dir"
+              fi
+            done
+          ) &&
+          git add --all . &&
+          git commit --signoff --message="$appname: Restored filtered files to '$src_dir/'"
+      fi
+    ) &&
+    cd - &&
+    git remote rm "$remote" 2>/dev/null
+  fi
+fi
 
 git remote add "$remote" "$tmpdir" &&
   git fetch "$remote" "$src_branch" &&
   (
-    git merge --edit --message="$appname: Merged '$src_dir/$src_files' from branch '$src_branch' of $repo_name" FETCH_HEAD ||
+    git merge --edit --message="$appname: Merged '${src_dir:+$src_dir/}$src_files' from branch '$src_branch' of $repo_name" FETCH_HEAD ||
     (
       printf >&2 "\n%sMerge failed because something went wrong.  Once you fixed it, run
 
