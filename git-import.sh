@@ -63,9 +63,22 @@ ${bold}PARAMETERS$norm
   exit 1
 fi
 
-[ -d "$src_repo" ] && src_repo=${src_repo%/}
-repo_name=${src_repo##*/}
-repo_name=${repo_name%%.git*}
+if [ -d "$src_repo" ]; then
+  src_repo=${src_repo%/}
+  repo_name=$(
+    cd "$src_repo" &&
+      git remote -v |
+        awk 'seen == 0 && $1 ~ /^origin$/ {
+          gsub("^[^/]*/|\\.git$", "", $2);
+          print $2;
+          seen=1;
+        }'
+  )
+else
+  repo_name=${src_repo##*/}
+  repo_name=${repo_name%%.git*}
+fi
+
 
 shift 3
 
