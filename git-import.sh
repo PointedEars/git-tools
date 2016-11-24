@@ -97,7 +97,7 @@ do
   src_file=${src_file#$src_repo/}
   src_file=${src_file#$src_dir}
   src_file=${src_file##/}
-  src_files=$src_files${src_file//./\\.}
+  src_files=$src_files${src_file}
 done
 
 tmpdir=$(mktemp -d -q "${TMPDIR:-/tmp/}$appname-$repo_name.XXXXXXXXXXXX") || exit 1
@@ -122,7 +122,7 @@ if [ $? -eq 0 ]; then
     (
       if [ -n "$src_files" ]; then
         git filter-branch -f \
-          --index-filter 'git ls-files -s | egrep '\'$'\t'"($src_files)"'$'\'' | \
+          --index-filter 'git ls-files -s | egrep '\'$'\t'"(${src_files//./\\.})"'$'\'' | \
             GIT_INDEX_FILE=$GIT_INDEX_FILE.new git update-index --index-info && \
             mv $GIT_INDEX_FILE.new $GIT_INDEX_FILE 2>/dev/null || echo ": Nothing to do"' \
           --prune-empty
