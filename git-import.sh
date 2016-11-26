@@ -103,7 +103,7 @@ done
 tmpdir=$(mktemp -d -q "${TMPDIR:-/tmp/}$appname-$repo_name.XXXXXXXXXXXX") || exit 1
 remote="$repo_name-$src_branch"
 
-git clone --branch "$src_branch" "$src_repo" "$tmpdir" &&
+git clone --no-hardlinks --branch "$src_branch" "$src_repo" "$tmpdir" &&
   cd "$tmpdir" &&
   git remote rm origin &&
   {
