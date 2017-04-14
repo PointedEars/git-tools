@@ -6,7 +6,7 @@
 ## Make it executable, symlink it as `git-root' in a directory in your PATH,
 ## and execute
 ##
-## export PROMPT_COMMAND="$PROMPT_COMMAND;"' [ -n "$(which git-root)" ] && export GIT_ROOT=$(git root --relative 2>/dev/null)'
+## export PROMPT_COMMAND="${PROMPT_COMMAND:+$PROMPT_COMMAND'; '}"' [ -n "$(which git-root)" ] && export GIT_ROOT=$(git root --relative 2>/dev/null)'
 ##
 ## when initialising the shell (e.g. in .bashrc) for a GIT_ROOT
 ## environment variable that always has the current git root directory relative path
