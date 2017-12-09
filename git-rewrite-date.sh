@@ -15,9 +15,9 @@ if [ -z "$commit_hash" ] || [ -z "$committer_date" ]; then
 Usage: $bold$appname$norm ${ital}COMMIT_HASH$norm ${ital}COMMITTER_DATE$norm [${ital}AUTHOR_DATE$norm]
 
 Rewrites the repository history so that the commit identified by
-${ital}COMMIT_HASH$norm has the committer date ${ital}COMMITTER_DATE$norm.
-If ${ital}COMMITTER_DATE$norm is \`-', the committer date will not be changed;
-you must specify ${ital}AUTHOR_DATE$norm then.
+${ital}COMMIT_HASH$norm (full or 7-character short hash) has the committer date
+${ital}COMMITTER_DATE$norm.  If ${ital}COMMITTER_DATE$norm is \`-', the committer date
+will not be changed; you must specify ${ital}AUTHOR_DATE$norm then.
 
 If ${ital}AUTHOR_DATE$norm is not provided, the authoring date will not
 be changed.
@@ -41,7 +41,8 @@ echo "<$commit_hash>: --> ${committer_date:+"committer_date=$committer_date"}${a
 
 git stash &&
   git filter-branch -f --env-filter '
-    if [ "$GIT_COMMIT" = "'"$commit_hash"'" ]; then
+    if [ "$GIT_COMMIT" = "'"$commit_hash"'" ] ||
+    ([ '${#commit_hash}' -eq 7 ] && [ "${GIT_COMMIT%${GIT_COMMIT#???????}}" = "'"$commit_hash"'" ]); then
       [ -n "'"$committer_date"'" ] && export GIT_COMMITTER_DATE="'"$committer_date"'"
       [ -n "'"$author_date"'" ] && export GIT_AUTHOR_DATE="'"$author_date"'"
     fi
