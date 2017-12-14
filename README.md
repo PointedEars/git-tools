@@ -2,7 +2,7 @@ git Tools
 =========
 
 | Tool | Purpose |
-| ---- | ------- |
+|:---- |:------- |
 | [`git-clone-sparse`](git-clone-sparse.sh) | Creates a sparse clone of a repository |
 | [`git-import`](git-import.sh) | Imports a directory/file from a branch of another repository |
 | [`git-rewrite-author`](git-rewrite-author.sh) | Rewrites the author/committer of all commits in a branch |
