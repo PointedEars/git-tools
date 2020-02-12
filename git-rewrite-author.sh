@@ -8,6 +8,7 @@ norm=$(tput sgr0 2>/dev/null)
 old_email=$1
 new_email=$2
 new_name=$3
+shift 3
 
 if [ -z "$old_email" ] || [ -z "$new_email" ]; then
   echo "Rewrites the author/committer of all commits in a branch.
@@ -29,11 +30,6 @@ fi
 
 if [ -n "$new_name" ] && [ "$new_name" = '-' ]; then
   unset new_name
-fi
-
-if [ -n "$4" ]; then
-  shift 3
-  # from here, use "$@" to expand branches properly
 fi
 
 echo "<$old_email> --> ${new_name:+\"$new_name\" }<$new_email>"
